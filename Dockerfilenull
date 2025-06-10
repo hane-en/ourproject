@@ -1,0 +1,20 @@
+# 🐳 المرحلة الأولى: البناء (Builder Stage)
+FROM cirrusci/flutter:latest AS builder
+WORKDIR /app
+COPY pubspec.yaml pubspec.lock ./
+
+# --- أسطر تصحيح الأخطاء (احذفها بعد الحل) ---
+# RUN apt-get update && apt-get install -y curl iputils-ping -y
+# RUN curl -I https://pub.dev
+# RUN ping -c 4 8.8.8.8 # جرب ping على DNS جوجل مباشرة
+# RUN ping -c 4 pub.dev # جرب ping على pub.dev
+# --- نهاية أسطر تصحيح الأخطاء ---
+
+RUN flutter pub get
+COPY . .
+RUN flutter build web --release
+FROM nginx:alpine
+RUN rm -rf /usr/share/nginx/html/*
+COPY --from=builder /app/build/web /usr/share/nginx/html
+EXPOSE 8080
+CMD ["nginx", "-g", "daemon off;"]
